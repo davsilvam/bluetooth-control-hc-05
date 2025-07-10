@@ -1,45 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:background="#2C3E50"
+    android:gravity="center"
+    android:padding="32dp">
 
-    <TextView
-        android:id="@+id/receive_text"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:freezesText="true"
-        android:gravity="bottom"
-        android:scrollbars="vertical"
-        android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
-
-    <View
-        android:layout_width="match_parent"
-        android:background="?android:attr/listDivider"
-        android:layout_height="2dp" />
-
-    <LinearLayout
-        android:layout_width="match_parent"
+    <GridLayout
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:layout_centerInParent="true"
+        android:columnCount="3"
+        android:rowCount="3"
+        android:useDefaultMargins="true">
 
-        <EditText
-            android:id="@+id/send_text"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:inputType="text|textNoSuggestions"
-            android:singleLine="true" />
+        <View
+            android:layout_width="96dp"
+            android:layout_height="96dp" />
 
-        <ImageButton
-            android:id="@+id/send_btn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:srcCompat="@drawable/ic_send_white_24dp" />
-    </LinearLayout>
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/button_up"
+            android:layout_width="96dp"
+            android:layout_height="96dp"
+            android:background="@drawable/button_background"
+            android:contentDescription="Frente"
+            app:srcCompat="@drawable/ic_arrow_up_white_24dp" />
 
-</LinearLayout>
+        <View
+            android:layout_width="96dp"
+            android:layout_height="96dp" />
 
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/button_left"
+            android:layout_width="96dp"
+            android:layout_height="96dp"
+            android:background="@drawable/button_background"
+            android:contentDescription="Esquerda"
+            app:srcCompat="@drawable/ic_arrow_left_white_24dp" />
+
+        <View
+            android:layout_width="96dp"
+            android:layout_height="96dp" />
+
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/button_right"
+            android:layout_width="96dp"
+            android:layout_height="96dp"
+            android:background="@drawable/button_background"
+            android:contentDescription="Direita"
+            app:srcCompat="@drawable/ic_arrow_right_white_24dp" />
+
+        <View
+            android:layout_width="96dp"
+            android:layout_height="96dp" />
+
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/button_down"
+            android:layout_width="96dp"
+            android:layout_height="96dp"
+            android:background="@drawable/button_background"
+            android:contentDescription="Trás"
+            app:srcCompat="@drawable/ic_arrow_down_white_24dp" />
+
+        <View
+            android:layout_width="96dp"
+            android:layout_height="96dp" />
+    </GridLayout>
+
+</RelativeLayout>

@@ -17,7 +17,6 @@ import java.util.UUID;
 import java.util.concurrent.Executors;
 
 class SerialSocket implements Runnable {
-
     private static final UUID BLUETOOTH_SPP = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 
     private final BroadcastReceiver disconnectBroadcastReceiver;
@@ -29,15 +28,18 @@ class SerialSocket implements Runnable {
     private boolean connected;
 
     SerialSocket(Context context, BluetoothDevice device) {
-        if(context instanceof Activity)
+        if (context instanceof Activity)
             throw new InvalidParameterException("expected non UI context");
         this.context = context;
         this.device = device;
+
         disconnectBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                if(listener != null)
+                if (listener != null) {
                     listener.onSerialIoError(new IOException("background disconnect"));
+                }
+
                 disconnect(); // disconnect now, else would be queued until UI re-attached
             }
         };
@@ -59,7 +61,7 @@ class SerialSocket implements Runnable {
     void disconnect() {
         listener = null; // ignore remaining data and errors
         // connected = false; // run loop will reset connected
-        if(socket != null) {
+        if (socket != null) {
             try {
                 socket.close();
             } catch (Exception ignored) {
@@ -83,16 +85,21 @@ class SerialSocket implements Runnable {
         try {
             socket = device.createRfcommSocketToServiceRecord(BLUETOOTH_SPP);
             socket.connect();
-            if(listener != null)
+
+            if (listener != null) {
                 listener.onSerialConnect();
+            }
         } catch (Exception e) {
-            if(listener != null)
+            if (listener != null) {
                 listener.onSerialConnectError(e);
+            }
             try {
                 socket.close();
             } catch (Exception ignored) {
             }
+
             socket = null;
+
             return;
         }
         connected = true;
@@ -103,17 +110,22 @@ class SerialSocket implements Runnable {
             while (true) {
                 len = socket.getInputStream().read(buffer);
                 byte[] data = Arrays.copyOf(buffer, len);
-                if(listener != null)
+
+                if (listener != null) {
                     listener.onSerialRead(data);
+                }
             }
         } catch (Exception e) {
             connected = false;
-            if (listener != null)
+            if (listener != null) {
                 listener.onSerialIoError(e);
+            }
+
             try {
                 socket.close();
             } catch (Exception ignored) {
             }
+
             socket = null;
         }
     }
