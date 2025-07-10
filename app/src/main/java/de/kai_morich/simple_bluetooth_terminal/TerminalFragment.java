@@ -138,11 +138,13 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
         View buttonDown = view.findViewById(R.id.button_down);
         View buttonLeft = view.findViewById(R.id.button_left);
         View buttonRight = view.findViewById(R.id.button_right);
+        View buttonStop = view.findViewById(R.id.button_stop);
 
-        buttonUp.setOnClickListener(v -> send("U"));
+        buttonUp.setOnClickListener(v -> send("F"));
         buttonDown.setOnClickListener(v -> send("B"));
         buttonLeft.setOnClickListener(v -> send("L"));
         buttonRight.setOnClickListener(v -> send("R"));
+        buttonStop.setOnClickListener(v -> send("S"));
         return view;
     }
 

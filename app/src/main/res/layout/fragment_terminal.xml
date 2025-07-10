@@ -39,9 +39,13 @@
             android:contentDescription="Esquerda"
             app:srcCompat="@drawable/ic_arrow_left_white_24dp" />
 
-        <View
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/button_stop"
             android:layout_width="96dp"
-            android:layout_height="96dp" />
+            android:layout_height="96dp"
+            android:background="@drawable/button_background"
+            android:contentDescription="Parar"
+            app:srcCompat="@drawable/ic_stop_white_24dp" />
 
         <androidx.appcompat.widget.AppCompatImageButton
             android:id="@+id/button_right"
