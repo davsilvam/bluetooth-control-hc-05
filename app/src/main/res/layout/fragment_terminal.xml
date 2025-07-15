@@ -15,9 +15,13 @@
         android:rowCount="3"
         android:useDefaultMargins="true">
 
-        <View
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/button_up_left"
             android:layout_width="96dp"
-            android:layout_height="96dp" />
+            android:layout_height="96dp"
+            android:background="@drawable/button_background"
+            android:contentDescription="Frente-Esquerda"
+            app:srcCompat="@drawable/ic_arrow_up_left_white_24dp" />
 
         <androidx.appcompat.widget.AppCompatImageButton
             android:id="@+id/button_up"
@@ -27,9 +31,13 @@
             android:contentDescription="Frente"
             app:srcCompat="@drawable/ic_arrow_up_white_24dp" />
 
-        <View
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/button_up_right"
             android:layout_width="96dp"
-            android:layout_height="96dp" />
+            android:layout_height="96dp"
+            android:background="@drawable/button_background"
+            android:contentDescription="Frente-Direita"
+            app:srcCompat="@drawable/ic_arrow_up_right_white_24dp" />
 
         <androidx.appcompat.widget.AppCompatImageButton
             android:id="@+id/button_left"
@@ -55,9 +63,13 @@
             android:contentDescription="Direita"
             app:srcCompat="@drawable/ic_arrow_right_white_24dp" />
 
-        <View
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/button_down_left"
             android:layout_width="96dp"
-            android:layout_height="96dp" />
+            android:layout_height="96dp"
+            android:background="@drawable/button_background"
+            android:contentDescription="Trás-Esquerda"
+            app:srcCompat="@drawable/ic_arrow_down_left_white_24dp" />
 
         <androidx.appcompat.widget.AppCompatImageButton
             android:id="@+id/button_down"
@@ -67,9 +79,13 @@
             android:contentDescription="Trás"
             app:srcCompat="@drawable/ic_arrow_down_white_24dp" />
 
-        <View
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/button_down_right"
             android:layout_width="96dp"
-            android:layout_height="96dp" />
+            android:layout_height="96dp"
+            android:background="@drawable/button_background"
+            android:contentDescription="Trás-Direita"
+            app:srcCompat="@drawable/ic_arrow_down_right_white_24dp" />
     </GridLayout>
 
 </RelativeLayout>

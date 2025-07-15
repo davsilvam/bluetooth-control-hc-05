@@ -1,6 +1,7 @@
 package de.kai_morich.simple_bluetooth_terminal;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
@@ -21,6 +22,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
@@ -131,20 +133,84 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
     /*
      * UI
      */
+//    @Override
+//    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+//        View view = inflater.inflate(R.layout.fragment_terminal, container, false);
+//
+//        View buttonUp = view.findViewById(R.id.button_up);
+//        View buttonDown = view.findViewById(R.id.button_down);
+//        View buttonLeft = view.findViewById(R.id.button_left);
+//        View buttonRight = view.findViewById(R.id.button_right);
+//        View buttonStop = view.findViewById(R.id.button_stop);
+//
+//        buttonUp.setOnClickListener(v -> send("F"));    // Frente
+//        buttonDown.setOnClickListener(v -> send("B"));  // Trás (Back)
+//        buttonLeft.setOnClickListener(v -> send("L"));  // Esquerda (Left)
+//        buttonRight.setOnClickListener(v -> send("R")); // Direita (Right)
+//        buttonStop.setOnClickListener(v -> send("S"));  // Parar (Stop)
+//
+//        View buttonUpLeft = view.findViewById(R.id.button_up_left);
+//        View buttonUpRight = view.findViewById(R.id.button_up_right);
+//        View buttonDownLeft = view.findViewById(R.id.button_down_left);
+//        View buttonDownRight = view.findViewById(R.id.button_down_right);
+//
+//        buttonUpLeft.setOnClickListener(v -> send("I"));      // Diagonal Frente-Esquerda
+//        buttonUpRight.setOnClickListener(v -> send("G"));     // Diagonal Frente-Direita
+//        buttonDownLeft.setOnClickListener(v -> send("J"));    // Diagonal Trás-Esquerda
+//        buttonDownRight.setOnClickListener(v -> send("H"));   // Diagonal Trás-Direita
+//
+//        return view;
+//    }
+
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_terminal, container, false);
+
+        // Mapeamento dos botões
         View buttonUp = view.findViewById(R.id.button_up);
         View buttonDown = view.findViewById(R.id.button_down);
         View buttonLeft = view.findViewById(R.id.button_left);
         View buttonRight = view.findViewById(R.id.button_right);
         View buttonStop = view.findViewById(R.id.button_stop);
+        View buttonUpLeft = view.findViewById(R.id.button_up_left);
+        View buttonUpRight = view.findViewById(R.id.button_up_right);
+        View buttonDownLeft = view.findViewById(R.id.button_down_left);
+        View buttonDownRight = view.findViewById(R.id.button_down_right);
 
-        buttonUp.setOnClickListener(v -> send("F"));
-        buttonDown.setOnClickListener(v -> send("B"));
-        buttonLeft.setOnClickListener(v -> send("L"));
-        buttonRight.setOnClickListener(v -> send("R"));
-        buttonStop.setOnClickListener(v -> send("S"));
+        // Lógica de "pressionar e segurar"
+        @SuppressLint("ClickableViewAccessibility") View.OnTouchListener touchListener = (v, event) -> {
+            String command = "";
+            if (v.getId() == R.id.button_up) command = "F";
+            else if (v.getId() == R.id.button_down) command = "B";
+            else if (v.getId() == R.id.button_left) command = "L";
+            else if (v.getId() == R.id.button_right) command = "R";
+            else if (v.getId() == R.id.button_stop) command = "S";
+            else if (v.getId() == R.id.button_up_left) command = "I";
+            else if (v.getId() == R.id.button_up_right) command = "G";
+            else if (v.getId() == R.id.button_down_left) command = "J";
+            else if (v.getId() == R.id.button_down_right) command = "H";
+
+            if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                // Botão pressionado: envia o comando
+                send(command);
+            } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                // Botão solto: envia o comando de parada
+                send("S");
+            }
+            return true; // Indica que o evento foi consumido
+        };
+
+        // Aplica o mesmo listener a todos os botões
+        buttonUp.setOnTouchListener(touchListener);
+        buttonDown.setOnTouchListener(touchListener);
+        buttonLeft.setOnTouchListener(touchListener);
+        buttonRight.setOnTouchListener(touchListener);
+        buttonStop.setOnTouchListener(touchListener);
+        buttonUpLeft.setOnTouchListener(touchListener);
+        buttonUpRight.setOnTouchListener(touchListener);
+        buttonDownLeft.setOnTouchListener(touchListener);
+        buttonDownRight.setOnTouchListener(touchListener);
+
         return view;
     }
 
