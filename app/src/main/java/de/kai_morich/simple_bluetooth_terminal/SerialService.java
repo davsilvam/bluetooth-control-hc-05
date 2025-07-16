@@ -5,6 +5,8 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
@@ -25,7 +27,6 @@ import java.util.ArrayDeque;
  * use listener chain: SerialSocket -> SerialService -> UI fragment
  */
 public class SerialService extends Service implements SerialListener {
-
     class SerialBinder extends Binder {
         SerialService getService() {
             return SerialService.this;
@@ -325,4 +326,7 @@ public class SerialService extends Service implements SerialListener {
         }
     }
 
+    public BluetoothDevice getDevice(String address) {
+        return BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
+    }
 }

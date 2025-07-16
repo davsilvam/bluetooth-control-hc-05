@@ -3,11 +3,23 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#2C3E50"
-    android:gravity="center"
-    android:padding="32dp">
+    android:background="#2C3E50">
+
+    <TextView
+        android:id="@+id/receive_text"
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        android:layout_alignParentTop="true"
+        android:layout_margin="16dp"
+        android:background="#1F2833"
+        android:gravity="bottom"
+        android:padding="8dp"
+        android:scrollbars="vertical"
+        android:textAppearance="@style/TextAppearance.AppCompat.Small"
+        android:textColor="@android:color/white" />
 
     <GridLayout
+        android:id="@+id/dpad_layout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
@@ -17,75 +29,103 @@
 
         <androidx.appcompat.widget.AppCompatImageButton
             android:id="@+id/button_up_left"
-            android:layout_width="96dp"
-            android:layout_height="96dp"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
             android:background="@drawable/button_background"
             android:contentDescription="Frente-Esquerda"
             app:srcCompat="@drawable/ic_arrow_up_left_white_24dp" />
 
         <androidx.appcompat.widget.AppCompatImageButton
             android:id="@+id/button_up"
-            android:layout_width="96dp"
-            android:layout_height="96dp"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
             android:background="@drawable/button_background"
             android:contentDescription="Frente"
             app:srcCompat="@drawable/ic_arrow_up_white_24dp" />
 
         <androidx.appcompat.widget.AppCompatImageButton
             android:id="@+id/button_up_right"
-            android:layout_width="96dp"
-            android:layout_height="96dp"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
             android:background="@drawable/button_background"
             android:contentDescription="Frente-Direita"
             app:srcCompat="@drawable/ic_arrow_up_right_white_24dp" />
 
         <androidx.appcompat.widget.AppCompatImageButton
             android:id="@+id/button_left"
-            android:layout_width="96dp"
-            android:layout_height="96dp"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
             android:background="@drawable/button_background"
             android:contentDescription="Esquerda"
             app:srcCompat="@drawable/ic_arrow_left_white_24dp" />
 
         <androidx.appcompat.widget.AppCompatImageButton
             android:id="@+id/button_stop"
-            android:layout_width="96dp"
-            android:layout_height="96dp"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
             android:background="@drawable/button_background"
             android:contentDescription="Parar"
             app:srcCompat="@drawable/ic_stop_white_24dp" />
 
         <androidx.appcompat.widget.AppCompatImageButton
             android:id="@+id/button_right"
-            android:layout_width="96dp"
-            android:layout_height="96dp"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
             android:background="@drawable/button_background"
             android:contentDescription="Direita"
             app:srcCompat="@drawable/ic_arrow_right_white_24dp" />
 
         <androidx.appcompat.widget.AppCompatImageButton
             android:id="@+id/button_down_left"
-            android:layout_width="96dp"
-            android:layout_height="96dp"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
             android:background="@drawable/button_background"
             android:contentDescription="Trás-Esquerda"
             app:srcCompat="@drawable/ic_arrow_down_left_white_24dp" />
 
         <androidx.appcompat.widget.AppCompatImageButton
             android:id="@+id/button_down"
-            android:layout_width="96dp"
-            android:layout_height="96dp"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
             android:background="@drawable/button_background"
             android:contentDescription="Trás"
             app:srcCompat="@drawable/ic_arrow_down_white_24dp" />
 
         <androidx.appcompat.widget.AppCompatImageButton
             android:id="@+id/button_down_right"
-            android:layout_width="96dp"
-            android:layout_height="96dp"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
             android:background="@drawable/button_background"
             android:contentDescription="Trás-Direita"
             app:srcCompat="@drawable/ic_arrow_down_right_white_24dp" />
     </GridLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_margin="16dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/send_text"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Enviar comando..."
+            android:imeOptions="actionSend"
+            android:inputType="text"
+            android:textColor="@android:color/white"
+            android:textColorHint="#CCCCCC" />
+
+        <ImageButton
+            android:id="@+id/send_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Enviar"
+            app:srcCompat="@drawable/ic_send_white_24dp" />
+    </LinearLayout>
 
 </RelativeLayout>

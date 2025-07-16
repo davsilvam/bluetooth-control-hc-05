@@ -83,8 +83,7 @@ public class DevicesFragment extends ListFragment {
     public void onCreateOptionsMenu(@NonNull Menu menu, MenuInflater inflater) {
         this.menu = menu;
         inflater.inflate(R.menu.menu_devices, menu);
-        if (permissionMissing)
-            menu.findItem(R.id.bt_refresh).setVisible(true);
+
         if (bluetoothAdapter == null)
             menu.findItem(R.id.bt_settings).setEnabled(false);
     }
@@ -118,8 +117,6 @@ public class DevicesFragment extends ListFragment {
         if (bluetoothAdapter != null) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 permissionMissing = getActivity().checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED;
-                if (menu != null && menu.findItem(R.id.bt_refresh) != null)
-                    menu.findItem(R.id.bt_refresh).setVisible(permissionMissing);
             }
             if (!permissionMissing) {
                 for (BluetoothDevice device : bluetoothAdapter.getBondedDevices())
@@ -145,10 +142,9 @@ public class DevicesFragment extends ListFragment {
     @Override
     public void onListItemClick(@NonNull ListView l, @NonNull View v, int position, long id) {
         BluetoothDevice device = listItems.get(position - 1);
-        Bundle args = new Bundle();
-        args.putString("device", device.getAddress());
-        Fragment fragment = new TerminalFragment();
-        fragment.setArguments(args);
-        getParentFragmentManager().beginTransaction().replace(R.id.fragment, fragment, "terminal").addToBackStack(null).commit();
+        // Inicia a TerminalActivity em vez da MainActivity
+        Intent intent = new Intent(getActivity(), TerminalActivity.class);
+        intent.putExtra("device", device.getAddress());
+        startActivity(intent);
     }
 }
