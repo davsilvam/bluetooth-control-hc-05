@@ -4,7 +4,7 @@
     "type": "APK",
     "kind": "Directory"
   },
-  "applicationId": "de.kai_morich.simple_bluetooth_terminal",
+  "applicationId": "com.davsilvam.bluetooth_control",
   "variantName": "release",
   "elements": [
     {

@@ -1,0 +1,144 @@
+package com.davsilvam.bluetooth_control.ui;
+
+import android.os.Bundle;
+import android.text.Spannable;
+import android.text.SpannableStringBuilder;
+import android.text.method.ScrollingMovementMethod;
+import android.text.style.ForegroundColorSpan;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
+import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+
+import java.util.ArrayDeque;
+import java.util.Objects;
+
+import com.davsilvam.bluetooth_control.R;
+import com.davsilvam.bluetooth_control.bluetooth.SerialSocket;
+import com.davsilvam.bluetooth_control.service.SerialListener;
+import com.davsilvam.bluetooth_control.service.SerialService;
+import com.davsilvam.bluetooth_control.utils.TextUtil;
+
+public class TerminalLogFragment extends Fragment implements SerialListener, ServiceConnectionListener {
+    private TextView receiveText;
+    private SerialService service;
+    private boolean pendingNewline = false;
+
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (getActivity() instanceof TerminalActivity) {
+            this.service = ((TerminalActivity) getActivity()).getService();
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        if (getActivity() instanceof TerminalActivity) {
+            this.service = ((TerminalActivity) getActivity()).getService();
+        }
+    }
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_terminal_log, container, false);
+        receiveText = view.findViewById(R.id.receive_text);
+        receiveText.setMovementMethod(ScrollingMovementMethod.getInstance());
+
+        EditText sendText = view.findViewById(R.id.send_text);
+        ImageButton sendBtn = view.findViewById(R.id.send_btn);
+
+        sendBtn.setOnClickListener(v -> sendFromText(sendText));
+        sendText.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_SEND) {
+                sendFromText(sendText);
+                return true;
+            }
+            return false;
+        });
+        return view;
+    }
+
+    private void sendFromText(EditText sendText) {
+        String text = sendText.getText().toString();
+        if (service == null || !service.isConnected()) {
+            Toast.makeText(getActivity(), "Serviço não conectado", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (!text.isEmpty()) {
+            try {
+                SpannableStringBuilder spn = new SpannableStringBuilder(text + '\n');
+                spn.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.colorSendText)), 0, spn.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                receiveText.append(spn);
+                String newline = TextUtil.newline_crlf;
+                byte[] data = (text + newline).getBytes();
+                service.write(data);
+                sendText.setText("");
+            } catch (Exception e) {
+                onSerialIoError(e);
+            }
+        }
+    }
+
+    private void status(String str) {
+        SpannableStringBuilder spn = new SpannableStringBuilder(str + '\n');
+        spn.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.colorStatusText)), 0, spn.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        receiveText.append(spn);
+    }
+
+    @Override
+    public void onSerialConnect() {
+        status("Conectado");
+    }
+
+    @Override
+    public void onSerialConnectError(Exception e) {
+        status("Falha na conexão: " + e.getMessage());
+    }
+
+    @Override
+    public void onSerialRead(ArrayDeque<byte[]> datas) {
+        SpannableStringBuilder spn = new SpannableStringBuilder();
+        for (byte[] data : datas) {
+            String msg = new String(data);
+            if (!msg.isEmpty()) {
+                msg = msg.replace(TextUtil.newline_crlf, TextUtil.newline_lf);
+                if (pendingNewline && msg.charAt(0) == '\n') {
+                    if (receiveText.length() >= 2) {
+                        receiveText.getEditableText().delete(receiveText.length() - 2, receiveText.length());
+                    }
+                }
+                pendingNewline = msg.charAt(msg.length() - 1) == '\r';
+            }
+
+            spn.append(TextUtil.toCaretString(msg, true));
+        }
+
+        spn.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.colorRecieveText)), 0, spn.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        receiveText.append(spn);
+    }
+
+    @Override
+    public void onSerialRead(byte[] data) {
+        ArrayDeque<byte[]> datas = new ArrayDeque<>();
+        datas.add(data);
+        onSerialRead(datas);
+    }
+
+    @Override
+    public void onSerialIoError(Exception e) {
+        status("Conexão perdida: " + e.getMessage());
+    }
+}

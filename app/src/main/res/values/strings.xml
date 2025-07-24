@@ -5,4 +5,11 @@
     <string name="bluetooth_permission_title">Permissão de Bluetooth</string>
     <string name="bluetooth_permission_grant">Este app precisa de permissão de Bluetooth. Por favor, conceda na próxima tela.</string>
     <string name="bluetooth_permission_denied">A permissão de Bluetooth foi negada. Você precisa habilitar a permissão \"%s\" nas configurações do app.</string>
+
+    <string name="service_not_connected">Serviço não conectado</string>
+    <string name="send_failed">Falha no envio: %1$s</string>
+    <string name="not_connected">Não conectado</string>
+    <string name="connection_lost">Conexão perdida: %1$s</string>
+    <string name="connection_failed">Falha na conexão: %1$s</string>
+    <string name="connected">Conectado</string>
 </resources>

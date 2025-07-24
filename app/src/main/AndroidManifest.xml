@@ -24,7 +24,7 @@
         tools:ignore="AllowBackup,GoogleAppIndexingWarning">
 
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.MainActivity"
             android:exported="true"
             android:windowSoftInputMode="stateHidden|adjustResize">
             <intent-filter>
@@ -33,10 +33,10 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".TerminalActivity" />
+        <activity android:name=".ui.TerminalActivity" />
 
         <service
-            android:name=".SerialService"
+            android:name=".service.SerialService"
             android:foregroundServiceType="remoteMessaging|connectedDevice" />
     </application>
 
