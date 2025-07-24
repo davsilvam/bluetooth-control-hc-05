@@ -14,14 +14,16 @@ import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
-
 import com.davsilvam.bluetooth_control.R;
+import com.davsilvam.bluetooth_control.service.SerialListener;
 import com.davsilvam.bluetooth_control.service.SerialService;
 import com.davsilvam.bluetooth_control.bluetooth.SerialSocket;
 
 public class TerminalActivity extends AppCompatActivity implements ServiceConnection {
     private SerialService service;
     private String deviceAddress;
+    private ViewPagerAdapter viewPagerAdapter;
+    private ViewPager2 viewPager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,55 +34,78 @@ public class TerminalActivity extends AppCompatActivity implements ServiceConnec
 
         if (getIntent().hasExtra("device")) {
             deviceAddress = getIntent().getStringExtra("device");
-            Intent intent = new Intent(this, SerialService.class);
-            bindService(intent, this, Context.BIND_AUTO_CREATE);
-            startService(intent);
         }
 
+        viewPager = findViewById(R.id.view_pager);
         TabLayout tabLayout = findViewById(R.id.tab_layout);
-        ViewPager2 viewPager = findViewById(R.id.view_pager);
-        ViewPagerAdapter adapter = new ViewPagerAdapter(this);
-        viewPager.setAdapter(adapter);
+        viewPagerAdapter = new ViewPagerAdapter(this);
+        viewPager.setAdapter(viewPagerAdapter);
 
-        new TabLayoutMediator(tabLayout, viewPager,
-                (tab, position) -> {
-                    if (position == 0) {
-                        tab.setText("Controle");
-                    } else {
-                        tab.setText("Terminal");
+        new TabLayoutMediator(tabLayout, viewPager, (tab, position) -> {
+            tab.setText(position == 0 ? "Controle" : "Terminal");
+        }).attach();
+
+        viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
+                super.onPageSelected(position);
+                if (service != null) {
+                    // Desanexa o listener antigo e anexa o novo (o fragment da aba atual)
+                    service.detach();
+                    Fragment currentFragment = viewPagerAdapter.getFragment(position);
+                    if (currentFragment instanceof SerialListener) {
+                        service.attach((SerialListener) currentFragment);
                     }
                 }
-        ).attach();
+            }
+        });
+
+        startService(new Intent(this, SerialService.class));
     }
 
     @Override
-    protected void onDestroy() {
-        if (service != null) {
+    protected void onStart() {
+        super.onStart();
+        bindService(new Intent(this, SerialService.class), this, Context.BIND_AUTO_CREATE);
+    }
+
+    @Override
+    protected void onStop() {
+        try {
             unbindService(this);
+        } catch (Exception ignored) {
         }
-        super.onDestroy();
+        super.onStop();
     }
 
     @Override
     public void onServiceConnected(ComponentName name, IBinder binder) {
         service = ((SerialService.SerialBinder) binder).getService();
 
-        for (Fragment fragment : getSupportFragmentManager().getFragments()) {
-            if (fragment instanceof ServiceConnectionListener) {
-                ((ServiceConnectionListener) fragment).onServiceConnected(service);
+        if (deviceAddress != null && !service.isConnected()) {
+            try {
+                SerialSocket socket = new SerialSocket(getApplicationContext(), service.getDevice(deviceAddress));
+                service.connect(socket);
+            } catch (Exception e) {
+                Fragment currentFragment = viewPagerAdapter.getFragment(viewPager.getCurrentItem());
+                if (currentFragment instanceof SerialListener) {
+                    ((SerialListener) currentFragment).onSerialConnectError(e);
+                }
             }
         }
 
-        try {
-            SerialSocket socket = new SerialSocket(getApplicationContext(), service.getDevice(deviceAddress));
-            service.connect(socket);
-        } catch (Exception ignored) {
-
+        Fragment currentFragment = viewPagerAdapter.getFragment(viewPager.getCurrentItem());
+        if (currentFragment instanceof SerialListener) {
+            service.attach((SerialListener) currentFragment);
         }
     }
 
     @Override
     public void onServiceDisconnected(ComponentName name) {
         service = null;
+    }
+
+    public SerialService getService() {
+        return service;
     }
 }

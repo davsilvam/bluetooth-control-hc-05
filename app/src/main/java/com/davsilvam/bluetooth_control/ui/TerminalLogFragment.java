@@ -1,4 +1,3 @@
-// Em: app/src/main/java/com/davsilvam/bluetooth_control/ui/TerminalLogFragment.java
 package com.davsilvam.bluetooth_control.ui;
 
 import android.os.Bundle;
@@ -20,8 +19,10 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import java.util.ArrayDeque;
+import java.util.Objects;
 
 import com.davsilvam.bluetooth_control.R;
+import com.davsilvam.bluetooth_control.bluetooth.SerialSocket;
 import com.davsilvam.bluetooth_control.service.SerialListener;
 import com.davsilvam.bluetooth_control.service.SerialService;
 import com.davsilvam.bluetooth_control.utils.TextUtil;
@@ -31,10 +32,22 @@ public class TerminalLogFragment extends Fragment implements SerialListener, Ser
     private SerialService service;
     private boolean pendingNewline = false;
 
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // A inicialização do serviço será feita em onServiceConnected
+        if (getActivity() instanceof TerminalActivity) {
+            this.service = ((TerminalActivity) getActivity()).getService();
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        if (getActivity() instanceof TerminalActivity) {
+            this.service = ((TerminalActivity) getActivity()).getService();
+        }
     }
 
     @Nullable
@@ -58,14 +71,6 @@ public class TerminalLogFragment extends Fragment implements SerialListener, Ser
         return view;
     }
 
-    @Override
-    public void onServiceConnected(SerialService service) {
-        this.service = service;
-        if (this.service != null) {
-            this.service.attach(this);
-        }
-    }
-
     private void sendFromText(EditText sendText) {
         String text = sendText.getText().toString();
         if (service == null || !service.isConnected()) {
@@ -85,15 +90,6 @@ public class TerminalLogFragment extends Fragment implements SerialListener, Ser
                 onSerialIoError(e);
             }
         }
-    }
-
-    @Override
-    public void onStop() {
-        if (service != null) {
-            service.detach(this);
-        }
-
-        super.onStop();
     }
 
     private void status(String str) {

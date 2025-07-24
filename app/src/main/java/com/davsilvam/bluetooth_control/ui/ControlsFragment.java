@@ -25,7 +25,19 @@ public class ControlsFragment extends Fragment implements SerialListener, Servic
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // A inicialização do serviço será feita em onServiceConnected
+
+        if (getActivity() instanceof TerminalActivity) {
+            this.service = ((TerminalActivity) getActivity()).getService();
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        if (getActivity() instanceof TerminalActivity) {
+            this.service = ((TerminalActivity) getActivity()).getService();
+        }
     }
 
     @Nullable
@@ -34,23 +46,6 @@ public class ControlsFragment extends Fragment implements SerialListener, Servic
         View view = inflater.inflate(R.layout.fragment_controls, container, false);
         setupButtonListeners(view);
         return view;
-    }
-
-    @Override
-    public void onStop() {
-        if (service != null) {
-            service.detach(this);
-        }
-
-        super.onStop();
-    }
-
-    @Override
-    public void onServiceConnected(SerialService service) {
-        this.service = service;
-        if (this.service != null) {
-            this.service.attach(this);
-        }
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -125,12 +120,9 @@ public class ControlsFragment extends Fragment implements SerialListener, Servic
 
     @Override
     public void onSerialConnect() {
-        // Opcional: pode mostrar um Toast ou mudar a UI se necessário
-    }
-
-    @Override
-    public void onSerialConnectError(Exception e) {
-        // Opcional: pode mostrar um Toast
+        if (getActivity() != null) {
+            getActivity().runOnUiThread(() -> Toast.makeText(getActivity(), "Conectado com sucesso", Toast.LENGTH_SHORT).show());
+        }
     }
 
     @Override
@@ -147,6 +139,15 @@ public class ControlsFragment extends Fragment implements SerialListener, Servic
     public void onSerialIoError(Exception e) {
         if (getActivity() != null) {
             getActivity().runOnUiThread(() -> Toast.makeText(getActivity(), "Conexão perdida: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+        }
+    }
+
+    @Override
+    public void onSerialConnectError(Exception e) {
+        if (getActivity() != null) {
+            getActivity().runOnUiThread(() -> {
+                Toast.makeText(getActivity(), "Falha na conexão: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            });
         }
     }
 }
