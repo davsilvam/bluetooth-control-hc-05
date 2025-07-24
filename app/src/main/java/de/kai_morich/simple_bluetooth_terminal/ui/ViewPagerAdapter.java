@@ -1,4 +1,4 @@
-package de.kai_morich.simple_bluetooth_terminal;
+package de.kai_morich.simple_bluetooth_terminal.ui;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -13,18 +13,15 @@ public class ViewPagerAdapter extends FragmentStateAdapter {
     @NonNull
     @Override
     public Fragment createFragment(int position) {
-        switch (position) {
-            case 0:
-                return new ControlsFragment();
-            case 1:
-                return new TerminalLogFragment();
-            default:
-                return new ControlsFragment();
+        if (position == 1) {
+            return new TerminalLogFragment();
         }
+
+        return new ControlsFragment();
     }
 
     @Override
     public int getItemCount() {
-        return 2; // Temos 2 abas
+        return 2;
     }
 }

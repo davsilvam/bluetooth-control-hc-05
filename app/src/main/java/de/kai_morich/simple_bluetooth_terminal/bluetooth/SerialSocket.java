@@ -1,4 +1,4 @@
-package de.kai_morich.simple_bluetooth_terminal;
+package de.kai_morich.simple_bluetooth_terminal.bluetooth;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothDevice;
@@ -16,7 +16,10 @@ import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 
-class SerialSocket implements Runnable {
+import de.kai_morich.simple_bluetooth_terminal.service.SerialListener;
+import de.kai_morich.simple_bluetooth_terminal.utils.Constants;
+
+public class SerialSocket implements Runnable {
     private static final UUID BLUETOOTH_SPP = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 
     private final BroadcastReceiver disconnectBroadcastReceiver;
@@ -27,7 +30,7 @@ class SerialSocket implements Runnable {
     private BluetoothSocket socket;
     private boolean connected;
 
-    SerialSocket(Context context, BluetoothDevice device) {
+    public SerialSocket(Context context, BluetoothDevice device) {
         if (context instanceof Activity)
             throw new InvalidParameterException("expected non UI context");
         this.context = context;
@@ -40,27 +43,24 @@ class SerialSocket implements Runnable {
                     listener.onSerialIoError(new IOException("background disconnect"));
                 }
 
-                disconnect(); // disconnect now, else would be queued until UI re-attached
+                disconnect();
             }
         };
     }
 
-    String getName() {
+    public String getName() {
         return device.getName() != null ? device.getName() : device.getAddress();
     }
 
-    /**
-     * connect-success and most connect-errors are returned asynchronously to listener
-     */
-    void connect(SerialListener listener) throws IOException {
+    public void connect(SerialListener listener) throws IOException {
         this.listener = listener;
         ContextCompat.registerReceiver(context, disconnectBroadcastReceiver, new IntentFilter(Constants.INTENT_ACTION_DISCONNECT), ContextCompat.RECEIVER_NOT_EXPORTED);
         Executors.newSingleThreadExecutor().submit(this);
     }
 
-    void disconnect() {
-        listener = null; // ignore remaining data and errors
-        // connected = false; // run loop will reset connected
+    public void disconnect() {
+        listener = null;
+
         if (socket != null) {
             try {
                 socket.close();
@@ -74,14 +74,14 @@ class SerialSocket implements Runnable {
         }
     }
 
-    void write(byte[] data) throws IOException {
+    public void write(byte[] data) throws IOException {
         if (!connected)
             throw new IOException("not connected");
         socket.getOutputStream().write(data);
     }
 
     @Override
-    public void run() { // connect & read
+    public void run() {
         try {
             socket = device.createRfcommSocketToServiceRecord(BLUETOOTH_SPP);
             socket.connect();
@@ -106,7 +106,7 @@ class SerialSocket implements Runnable {
         try {
             byte[] buffer = new byte[1024];
             int len;
-            //noinspection InfiniteLoopStatement
+
             while (true) {
                 len = socket.getInputStream().read(buffer);
                 byte[] data = Arrays.copyOf(buffer, len);
@@ -124,6 +124,7 @@ class SerialSocket implements Runnable {
             try {
                 socket.close();
             } catch (Exception ignored) {
+
             }
 
             socket = null;

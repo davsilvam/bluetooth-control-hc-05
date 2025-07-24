@@ -1,4 +1,4 @@
-package de.kai_morich.simple_bluetooth_terminal;
+package de.kai_morich.simple_bluetooth_terminal.ui;
 
 import android.os.Bundle;
 import android.text.Spannable;
@@ -20,12 +20,15 @@ import androidx.fragment.app.Fragment;
 
 import java.util.ArrayDeque;
 
-public class TerminalLogFragment extends Fragment implements SerialListener {
+import de.kai_morich.simple_bluetooth_terminal.R;
+import de.kai_morich.simple_bluetooth_terminal.service.SerialListener;
+import de.kai_morich.simple_bluetooth_terminal.service.SerialService;
+import de.kai_morich.simple_bluetooth_terminal.utils.TextUtil;
 
+public class TerminalLogFragment extends Fragment implements SerialListener {
     private TextView receiveText;
     private SerialService service;
     private boolean pendingNewline = false;
-    private String newline = TextUtil.newline_crlf;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -67,6 +70,7 @@ public class TerminalLogFragment extends Fragment implements SerialListener {
                 SpannableStringBuilder spn = new SpannableStringBuilder(text + '\n');
                 spn.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.colorSendText)), 0, spn.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                 receiveText.append(spn);
+                String newline = TextUtil.newline_crlf;
                 byte[] data = (text + newline).getBytes();
                 service.write(data);
                 sendText.setText("");
@@ -90,7 +94,12 @@ public class TerminalLogFragment extends Fragment implements SerialListener {
         super.onStop();
     }
 
-    // Métodos do SerialListener
+    private void status(String str) {
+        SpannableStringBuilder spn = new SpannableStringBuilder(str + '\n');
+        spn.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.colorStatusText)), 0, spn.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        receiveText.append(spn);
+    }
+
     @Override
     public void onSerialConnect() {
         status("Conectado");
@@ -106,7 +115,7 @@ public class TerminalLogFragment extends Fragment implements SerialListener {
         SpannableStringBuilder spn = new SpannableStringBuilder();
         for (byte[] data : datas) {
             String msg = new String(data);
-            if (newline.equals(TextUtil.newline_crlf) && msg.length() > 0) {
+            if (!msg.isEmpty()) {
                 msg = msg.replace(TextUtil.newline_crlf, TextUtil.newline_lf);
                 if (pendingNewline && msg.charAt(0) == '\n') {
                     if (receiveText.length() >= 2) {
@@ -115,14 +124,16 @@ public class TerminalLogFragment extends Fragment implements SerialListener {
                 }
                 pendingNewline = msg.charAt(msg.length() - 1) == '\r';
             }
-            spn.append(TextUtil.toCaretString(msg, newline.length() != 0));
+
+            spn.append(TextUtil.toCaretString(msg, true));
         }
+
         spn.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.colorRecieveText)), 0, spn.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         receiveText.append(spn);
     }
 
     @Override
-    public void onSerialRead(byte[] data) { // Adicionado para compatibilidade
+    public void onSerialRead(byte[] data) {
         ArrayDeque<byte[]> datas = new ArrayDeque<>();
         datas.add(data);
         onSerialRead(datas);
@@ -131,11 +142,5 @@ public class TerminalLogFragment extends Fragment implements SerialListener {
     @Override
     public void onSerialIoError(Exception e) {
         status("Conexão perdida: " + e.getMessage());
-    }
-
-    private void status(String str) {
-        SpannableStringBuilder spn = new SpannableStringBuilder(str + '\n');
-        spn.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.colorStatusText)), 0, spn.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        receiveText.append(spn);
     }
 }

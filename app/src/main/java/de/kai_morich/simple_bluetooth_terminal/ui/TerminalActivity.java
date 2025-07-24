@@ -1,4 +1,4 @@
-package de.kai_morich.simple_bluetooth_terminal;
+package de.kai_morich.simple_bluetooth_terminal.ui;
 
 import android.content.ComponentName;
 import android.content.Context;
@@ -14,6 +14,10 @@ import androidx.viewpager2.widget.ViewPager2;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
+import de.kai_morich.simple_bluetooth_terminal.R;
+import de.kai_morich.simple_bluetooth_terminal.service.SerialService;
+import de.kai_morich.simple_bluetooth_terminal.bluetooth.SerialSocket;
+
 public class TerminalActivity extends AppCompatActivity implements ServiceConnection {
     private SerialService service;
     private String deviceAddress;
@@ -25,16 +29,13 @@ public class TerminalActivity extends AppCompatActivity implements ServiceConnec
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        // A tela de seleção de dispositivos agora inicia a conexão aqui
         if (getIntent().hasExtra("device")) {
             deviceAddress = getIntent().getStringExtra("device");
-            // Inicia e se conecta ao serviço
             Intent intent = new Intent(this, SerialService.class);
             bindService(intent, this, Context.BIND_AUTO_CREATE);
             startService(intent);
         }
 
-        // Configuração das Abas
         TabLayout tabLayout = findViewById(R.id.tab_layout);
         ViewPager2 viewPager = findViewById(R.id.view_pager);
         ViewPagerAdapter adapter = new ViewPagerAdapter(this);
@@ -66,12 +67,12 @@ public class TerminalActivity extends AppCompatActivity implements ServiceConnec
     @Override
     public void onServiceConnected(ComponentName name, IBinder binder) {
         service = ((SerialService.SerialBinder) binder).getService();
-        // Conectar ao dispositivo
+
         try {
             SerialSocket socket = new SerialSocket(getApplicationContext(), service.getDevice(deviceAddress));
             service.connect(socket);
-        } catch (Exception e) {
-            // Lidar com o erro
+        } catch (Exception ignored) {
+
         }
     }
 

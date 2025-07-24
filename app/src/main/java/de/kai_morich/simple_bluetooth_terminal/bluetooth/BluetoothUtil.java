@@ -1,4 +1,4 @@
-package de.kai_morich.simple_bluetooth_terminal;
+package de.kai_morich.simple_bluetooth_terminal.bluetooth;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -13,16 +13,16 @@ import android.os.Build;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.fragment.app.Fragment;
 
+import de.kai_morich.simple_bluetooth_terminal.BuildConfig;
+import de.kai_morich.simple_bluetooth_terminal.R;
+
 public class BluetoothUtil {
-    interface PermissionGrantedCallback {
+    public interface PermissionGrantedCallback {
         void call();
     }
 
-    /**
-     * sort by name, then address. sort named devices first
-     */
     @SuppressLint("MissingPermission")
-    static int compareTo(BluetoothDevice a, BluetoothDevice b) {
+    public static int compareTo(BluetoothDevice a, BluetoothDevice b) {
         boolean aValid = a.getName() != null && !a.getName().isEmpty();
         boolean bValid = b.getName() != null && !b.getName().isEmpty();
 
@@ -62,7 +62,7 @@ public class BluetoothUtil {
         builder.show();
     }
 
-    static boolean hasPermissions(Fragment fragment, ActivityResultLauncher<String> requestPermissionLauncher) {
+    public static boolean hasPermissions(Fragment fragment, ActivityResultLauncher<String> requestPermissionLauncher) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S)
             return true;
         boolean missingPermissions = fragment.getActivity().checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED;
@@ -81,7 +81,7 @@ public class BluetoothUtil {
         }
     }
 
-    static void onPermissionsResult(Fragment fragment, boolean granted, PermissionGrantedCallback cb) {
+    public static void onPermissionsResult(Fragment fragment, boolean granted, PermissionGrantedCallback cb) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
             return;
         }

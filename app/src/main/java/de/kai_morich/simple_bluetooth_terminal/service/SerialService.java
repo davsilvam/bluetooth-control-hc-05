@@ -1,4 +1,4 @@
-package de.kai_morich.simple_bluetooth_terminal;
+package de.kai_morich.simple_bluetooth_terminal.service;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -22,13 +22,13 @@ import androidx.core.app.NotificationCompat;
 import java.io.IOException;
 import java.util.ArrayDeque;
 
-/**
- * create notification and queue serial data while activity is not in the foreground
- * use listener chain: SerialSocket -> SerialService -> UI fragment
- */
+import de.kai_morich.simple_bluetooth_terminal.R;
+import de.kai_morich.simple_bluetooth_terminal.bluetooth.SerialSocket;
+import de.kai_morich.simple_bluetooth_terminal.utils.Constants;
+
 public class SerialService extends Service implements SerialListener {
-    class SerialBinder extends Binder {
-        SerialService getService() {
+    public class SerialBinder extends Binder {
+        public SerialService getService() {
             return SerialService.this;
         }
     }
@@ -73,9 +73,7 @@ public class SerialService extends Service implements SerialListener {
     private SerialListener listener;
     private boolean connected;
 
-    /**
-     * Lifecylce
-     */
+
     public SerialService() {
         mainLooper = new Handler(Looper.getMainLooper());
         binder = new SerialBinder();
@@ -97,9 +95,6 @@ public class SerialService extends Service implements SerialListener {
         return binder;
     }
 
-    /**
-     * Api
-     */
     public void connect(SerialSocket socket) throws IOException {
         socket.connect(this);
         this.socket = socket;
@@ -107,8 +102,9 @@ public class SerialService extends Service implements SerialListener {
     }
 
     public void disconnect() {
-        connected = false; // ignore data,errors while disconnecting
+        connected = false;
         cancelNotification();
+
         if (socket != null) {
             socket.disconnect();
             socket = null;
@@ -116,21 +112,25 @@ public class SerialService extends Service implements SerialListener {
     }
 
     public void write(byte[] data) throws IOException {
-        if (!connected)
+        if (!connected) {
             throw new IOException("not connected");
+        }
+
         socket.write(data);
     }
 
     public void attach(SerialListener listener) {
-        if (Looper.getMainLooper().getThread() != Thread.currentThread())
+        if (Looper.getMainLooper().getThread() != Thread.currentThread()) {
             throw new IllegalArgumentException("not in main thread");
+        }
+
         initNotification();
         cancelNotification();
-        // use synchronized() to prevent new items in queue2
-        // new items will not be added to queue1 because mainLooper.post and attach() run in main thread
+
         synchronized (this) {
             this.listener = listener;
         }
+
         for (QueueItem item : queue1) {
             switch (item.type) {
                 case Connect:
@@ -147,6 +147,7 @@ public class SerialService extends Service implements SerialListener {
                     break;
             }
         }
+
         for (QueueItem item : queue2) {
             switch (item.type) {
                 case Connect:
@@ -163,16 +164,16 @@ public class SerialService extends Service implements SerialListener {
                     break;
             }
         }
+
         queue1.clear();
         queue2.clear();
     }
 
     public void detach() {
-        if (connected)
+        if (connected) {
             createNotification();
-        // items already in event queue (posted before detach() to mainLooper) will end up in queue1
-        // items occurring later, will be moved directly to queue2
-        // detach() and mainLooper.post run in the main thread, so all items are caught
+        }
+
         listener = null;
     }
 
@@ -221,9 +222,6 @@ public class SerialService extends Service implements SerialListener {
         stopForeground(true);
     }
 
-    /**
-     * SerialListener
-     */
     public void onSerialConnect() {
         if (connected) {
             synchronized (this) {
@@ -266,14 +264,6 @@ public class SerialService extends Service implements SerialListener {
         throw new UnsupportedOperationException();
     }
 
-    /**
-     * reduce number of UI updates by merging data chunks.
-     * Data can arrive at hundred chunks per second, but the UI can only
-     * perform a dozen updates if receiveText already contains much text.
-     * <p>
-     * On new data inform UI thread once (1).
-     * While not consumed (2), add more data (3).
-     */
     public void onSerialRead(byte[] data) {
         if (connected) {
             synchronized (this) {

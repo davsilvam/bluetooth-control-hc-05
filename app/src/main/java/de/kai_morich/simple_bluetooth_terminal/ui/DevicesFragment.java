@@ -1,4 +1,4 @@
-package de.kai_morich.simple_bluetooth_terminal;
+package de.kai_morich.simple_bluetooth_terminal.ui;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -20,18 +20,20 @@ import android.widget.TextView;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
-import androidx.fragment.app.Fragment;
 import androidx.fragment.app.ListFragment;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Objects;
+
+import de.kai_morich.simple_bluetooth_terminal.R;
+import de.kai_morich.simple_bluetooth_terminal.bluetooth.BluetoothUtil;
 
 public class DevicesFragment extends ListFragment {
     private BluetoothAdapter bluetoothAdapter;
     private final ArrayList<BluetoothDevice> listItems = new ArrayList<>();
     private ArrayAdapter<BluetoothDevice> listAdapter;
     ActivityResultLauncher<String> requestBluetoothPermissionLauncherForRefresh;
-    private Menu menu;
     private boolean permissionMissing;
 
     @Override
@@ -39,18 +41,18 @@ public class DevicesFragment extends ListFragment {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
 
-        if (getActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH)) {
+        if (requireActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH)) {
             bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         }
 
-        listAdapter = new ArrayAdapter<BluetoothDevice>(getActivity(), 0, listItems) {
+        listAdapter = new ArrayAdapter<BluetoothDevice>(requireActivity(), 0, listItems) {
             @NonNull
             @Override
             public View getView(int position, View view, @NonNull ViewGroup parent) {
                 BluetoothDevice device = listItems.get(position);
 
                 if (view == null) {
-                    view = getActivity().getLayoutInflater().inflate(R.layout.device_list_item, parent, false);
+                    view = requireActivity().getLayoutInflater().inflate(R.layout.device_list_item, parent, false);
 
                 }
 
@@ -72,7 +74,7 @@ public class DevicesFragment extends ListFragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         setListAdapter(null);
-        View header = getActivity().getLayoutInflater().inflate(R.layout.device_list_header, null, false);
+        View header = requireActivity().getLayoutInflater().inflate(R.layout.device_list_header, null, false);
         getListView().addHeaderView(header, null, false);
         setEmptyText("initializing...");
         ((TextView) getListView().getEmptyView()).setTextSize(18);
@@ -81,7 +83,6 @@ public class DevicesFragment extends ListFragment {
 
     @Override
     public void onCreateOptionsMenu(@NonNull Menu menu, MenuInflater inflater) {
-        this.menu = menu;
         inflater.inflate(R.menu.menu_devices, menu);
 
         if (bluetoothAdapter == null)
@@ -97,14 +98,18 @@ public class DevicesFragment extends ListFragment {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
+
         if (id == R.id.bt_settings) {
             Intent intent = new Intent();
             intent.setAction(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS);
             startActivity(intent);
+
             return true;
         } else if (id == R.id.bt_refresh) {
-            if (BluetoothUtil.hasPermissions(this, requestBluetoothPermissionLauncherForRefresh))
+            if (BluetoothUtil.hasPermissions(this, requestBluetoothPermissionLauncherForRefresh)) {
                 refresh();
+            }
+
             return true;
         } else {
             return super.onOptionsItemSelected(item);
@@ -112,11 +117,11 @@ public class DevicesFragment extends ListFragment {
     }
 
     @SuppressLint("MissingPermission")
-    void refresh() {
+    public void refresh() {
         listItems.clear();
         if (bluetoothAdapter != null) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                permissionMissing = getActivity().checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED;
+                permissionMissing = requireActivity().checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED;
             }
             if (!permissionMissing) {
                 for (BluetoothDevice device : bluetoothAdapter.getBondedDevices())
@@ -142,7 +147,6 @@ public class DevicesFragment extends ListFragment {
     @Override
     public void onListItemClick(@NonNull ListView l, @NonNull View v, int position, long id) {
         BluetoothDevice device = listItems.get(position - 1);
-        // Inicia a TerminalActivity em vez da MainActivity
         Intent intent = new Intent(getActivity(), TerminalActivity.class);
         intent.putExtra("device", device.getAddress());
         startActivity(intent);
