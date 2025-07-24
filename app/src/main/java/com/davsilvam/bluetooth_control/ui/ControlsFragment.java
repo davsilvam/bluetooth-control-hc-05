@@ -67,15 +67,15 @@ public class ControlsFragment extends Fragment implements SerialListener, Servic
         );
 
         view.findViewById(R.id.button_up_left).setOnTouchListener(
-                (v, event) -> handleTouch(event, "I")
+                (v, event) -> handleTouch(event, "Q")
         );
 
         view.findViewById(R.id.button_up_right).setOnTouchListener(
-                (v, event) -> handleTouch(event, "G")
+                (v, event) -> handleTouch(event, "P")
         );
 
         view.findViewById(R.id.button_down_left).setOnTouchListener(
-                (v, event) -> handleTouch(event, "J")
+                (v, event) -> handleTouch(event, "G")
         );
 
         view.findViewById(R.id.button_down_right).setOnTouchListener(
