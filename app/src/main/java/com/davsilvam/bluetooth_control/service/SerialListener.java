@@ -1,4 +1,4 @@
-package de.kai_morich.simple_bluetooth_terminal.service;
+package com.davsilvam.bluetooth_control.service;
 
 import java.util.ArrayDeque;
 

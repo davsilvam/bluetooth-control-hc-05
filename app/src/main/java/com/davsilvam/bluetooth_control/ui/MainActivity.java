@@ -1,4 +1,4 @@
-package de.kai_morich.simple_bluetooth_terminal.ui;
+package com.davsilvam.bluetooth_control.ui;
 
 import android.os.Bundle;
 
@@ -8,7 +8,7 @@ import androidx.fragment.app.FragmentManager;
 
 import java.util.Objects;
 
-import de.kai_morich.simple_bluetooth_terminal.R;
+import com.davsilvam.bluetooth_control.R;
 
 public class MainActivity extends AppCompatActivity implements FragmentManager.OnBackStackChangedListener {
     @Override

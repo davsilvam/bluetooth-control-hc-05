@@ -1,4 +1,4 @@
-package de.kai_morich.simple_bluetooth_terminal.service;
+package com.davsilvam.bluetooth_control.service;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -21,10 +21,12 @@ import androidx.core.app.NotificationCompat;
 
 import java.io.IOException;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.List;
 
-import de.kai_morich.simple_bluetooth_terminal.R;
-import de.kai_morich.simple_bluetooth_terminal.bluetooth.SerialSocket;
-import de.kai_morich.simple_bluetooth_terminal.utils.Constants;
+import com.davsilvam.bluetooth_control.R;
+import com.davsilvam.bluetooth_control.bluetooth.SerialSocket;
+import com.davsilvam.bluetooth_control.utils.Constants;
 
 public class SerialService extends Service implements SerialListener {
     public class SerialBinder extends Binder {
@@ -70,7 +72,7 @@ public class SerialService extends Service implements SerialListener {
     private final QueueItem lastRead;
 
     private SerialSocket socket;
-    private SerialListener listener;
+    private final List<SerialListener> listeners; // Alterado para uma lista
     private boolean connected;
 
 
@@ -80,6 +82,7 @@ public class SerialService extends Service implements SerialListener {
         queue1 = new ArrayDeque<>();
         queue2 = new ArrayDeque<>();
         lastRead = new QueueItem(QueueType.Read);
+        listeners = new ArrayList<>(); // Inicializa a lista
     }
 
     @Override
@@ -128,7 +131,9 @@ public class SerialService extends Service implements SerialListener {
         cancelNotification();
 
         synchronized (this) {
-            this.listener = listener;
+            if (!listeners.contains(listener)) {
+                listeners.add(listener);
+            }
         }
 
         for (QueueItem item : queue1) {
@@ -165,16 +170,18 @@ public class SerialService extends Service implements SerialListener {
             }
         }
 
-        queue1.clear();
-        queue2.clear();
+        // Limpa as filas apenas se for o primeiro listener a se conectar
+        if (listeners.size() == 1) {
+            queue1.clear();
+            queue2.clear();
+        }
     }
 
-    public void detach() {
-        if (connected) {
+    public void detach(SerialListener listener) { // Alterado para receber o listener a ser removido
+        if (connected && listeners.isEmpty()) {
             createNotification();
         }
-
-        listener = null;
+        listeners.remove(listener);
     }
 
     private void initNotification() {
@@ -212,8 +219,6 @@ public class SerialService extends Service implements SerialListener {
                 .setContentIntent(restartPendingIntent)
                 .setOngoing(true)
                 .addAction(new NotificationCompat.Action(R.drawable.ic_clear_white_24dp, "Disconnect", disconnectPendingIntent));
-        // @drawable/ic_notification created with Android Studio -> New -> Image Asset using @color/colorPrimaryDark as background color
-        // Android < API 21 does not support vectorDrawables in notifications, so both drawables used here, are created as .png instead of .xml
         Notification notification = builder.build();
         startForeground(Constants.NOTIFY_MANAGER_START_FOREGROUND_SERVICE, notification);
     }
@@ -222,19 +227,25 @@ public class SerialService extends Service implements SerialListener {
         stopForeground(true);
     }
 
+    private void postToListeners(Runnable action) {
+        mainLooper.post(() -> {
+            if (!listeners.isEmpty()) {
+                action.run();
+            }
+        });
+    }
+
     public void onSerialConnect() {
         if (connected) {
             synchronized (this) {
-                if (listener != null) {
-                    mainLooper.post(() -> {
-                        if (listener != null) {
+                if (!listeners.isEmpty()) {
+                    postToListeners(() -> {
+                        for (SerialListener listener : listeners) {
                             listener.onSerialConnect();
-                        } else {
-                            queue1.add(new QueueItem(QueueType.Connect));
                         }
                     });
                 } else {
-                    queue2.add(new QueueItem(QueueType.Connect));
+                    queue1.add(new QueueItem(QueueType.Connect));
                 }
             }
         }
@@ -243,17 +254,14 @@ public class SerialService extends Service implements SerialListener {
     public void onSerialConnectError(Exception e) {
         if (connected) {
             synchronized (this) {
-                if (listener != null) {
-                    mainLooper.post(() -> {
-                        if (listener != null) {
+                if (!listeners.isEmpty()) {
+                    postToListeners(() -> {
+                        for (SerialListener listener : listeners) {
                             listener.onSerialConnectError(e);
-                        } else {
-                            queue1.add(new QueueItem(QueueType.ConnectError, e));
-                            disconnect();
                         }
                     });
                 } else {
-                    queue2.add(new QueueItem(QueueType.ConnectError, e));
+                    queue1.add(new QueueItem(QueueType.ConnectError, e));
                     disconnect();
                 }
             }
@@ -267,26 +275,14 @@ public class SerialService extends Service implements SerialListener {
     public void onSerialRead(byte[] data) {
         if (connected) {
             synchronized (this) {
-                if (listener != null) {
-                    boolean first;
-                    synchronized (lastRead) {
-                        first = lastRead.datas.isEmpty(); // (1)
-                        lastRead.add(data); // (3)
-                    }
-                    if (first) {
-                        mainLooper.post(() -> {
-                            ArrayDeque<byte[]> datas;
-                            synchronized (lastRead) {
-                                datas = lastRead.datas;
-                                lastRead.init(); // (2)
-                            }
-                            if (listener != null) {
-                                listener.onSerialRead(datas);
-                            } else {
-                                queue1.add(new QueueItem(QueueType.Read, datas));
-                            }
-                        });
-                    }
+                if (!listeners.isEmpty()) {
+                    postToListeners(() -> {
+                        ArrayDeque<byte[]> singleData = new ArrayDeque<>();
+                        singleData.add(data);
+                        for (SerialListener listener : listeners) {
+                            listener.onSerialRead(singleData);
+                        }
+                    });
                 } else {
                     if (queue2.isEmpty() || queue2.getLast().type != QueueType.Read)
                         queue2.add(new QueueItem(QueueType.Read));
@@ -299,17 +295,14 @@ public class SerialService extends Service implements SerialListener {
     public void onSerialIoError(Exception e) {
         if (connected) {
             synchronized (this) {
-                if (listener != null) {
-                    mainLooper.post(() -> {
-                        if (listener != null) {
+                if (!listeners.isEmpty()) {
+                    postToListeners(() -> {
+                        for (SerialListener listener : listeners) {
                             listener.onSerialIoError(e);
-                        } else {
-                            queue1.add(new QueueItem(QueueType.IoError, e));
-                            disconnect();
                         }
                     });
                 } else {
-                    queue2.add(new QueueItem(QueueType.IoError, e));
+                    queue1.add(new QueueItem(QueueType.IoError, e));
                     disconnect();
                 }
             }
@@ -318,5 +311,9 @@ public class SerialService extends Service implements SerialListener {
 
     public BluetoothDevice getDevice(String address) {
         return BluetoothAdapter.getDefaultAdapter().getRemoteDevice(address);
+    }
+
+    public boolean isConnected() {
+        return connected;
     }
 }

@@ -1,4 +1,4 @@
-package de.kai_morich.simple_bluetooth_terminal.ui;
+package com.davsilvam.bluetooth_control.ui;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;

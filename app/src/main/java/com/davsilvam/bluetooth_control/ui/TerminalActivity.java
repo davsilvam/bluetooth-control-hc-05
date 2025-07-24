@@ -1,4 +1,4 @@
-package de.kai_morich.simple_bluetooth_terminal.ui;
+package com.davsilvam.bluetooth_control.ui;
 
 import android.content.ComponentName;
 import android.content.Context;
@@ -9,14 +9,15 @@ import android.os.IBinder;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.fragment.app.Fragment;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
-import de.kai_morich.simple_bluetooth_terminal.R;
-import de.kai_morich.simple_bluetooth_terminal.service.SerialService;
-import de.kai_morich.simple_bluetooth_terminal.bluetooth.SerialSocket;
+import com.davsilvam.bluetooth_control.R;
+import com.davsilvam.bluetooth_control.service.SerialService;
+import com.davsilvam.bluetooth_control.bluetooth.SerialSocket;
 
 public class TerminalActivity extends AppCompatActivity implements ServiceConnection {
     private SerialService service;
@@ -60,13 +61,15 @@ public class TerminalActivity extends AppCompatActivity implements ServiceConnec
         super.onDestroy();
     }
 
-    public SerialService getSerialService() {
-        return service;
-    }
-
     @Override
     public void onServiceConnected(ComponentName name, IBinder binder) {
         service = ((SerialService.SerialBinder) binder).getService();
+
+        for (Fragment fragment : getSupportFragmentManager().getFragments()) {
+            if (fragment instanceof ServiceConnectionListener) {
+                ((ServiceConnectionListener) fragment).onServiceConnected(service);
+            }
+        }
 
         try {
             SerialSocket socket = new SerialSocket(getApplicationContext(), service.getDevice(deviceAddress));

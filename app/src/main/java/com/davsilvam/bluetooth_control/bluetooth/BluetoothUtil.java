@@ -1,4 +1,4 @@
-package de.kai_morich.simple_bluetooth_terminal.bluetooth;
+package com.davsilvam.bluetooth_control.bluetooth;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -13,8 +13,9 @@ import android.os.Build;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.fragment.app.Fragment;
 
-import de.kai_morich.simple_bluetooth_terminal.BuildConfig;
-import de.kai_morich.simple_bluetooth_terminal.R;
+import com.davsilvam.bluetooth_control.R;
+
+import com.davsilvam.bluetooth_control.BuildConfig;
 
 public class BluetoothUtil {
     public interface PermissionGrantedCallback {

@@ -1,6 +1,7 @@
-package de.kai_morich.simple_bluetooth_terminal.utils;
+package com.davsilvam.bluetooth_control.utils;
 
-import de.kai_morich.simple_bluetooth_terminal.BuildConfig;
+
+import com.davsilvam.bluetooth_control.BuildConfig;
 
 public class Constants {
     public static final String INTENT_ACTION_DISCONNECT = BuildConfig.APPLICATION_ID + ".Disconnect";

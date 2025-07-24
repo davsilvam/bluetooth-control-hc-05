@@ -1,4 +1,5 @@
-package de.kai_morich.simple_bluetooth_terminal.ui;
+// Em: app/src/main/java/com/davsilvam/bluetooth_control/ui/TerminalLogFragment.java
+package com.davsilvam.bluetooth_control.ui;
 
 import android.os.Bundle;
 import android.text.Spannable;
@@ -20,12 +21,12 @@ import androidx.fragment.app.Fragment;
 
 import java.util.ArrayDeque;
 
-import de.kai_morich.simple_bluetooth_terminal.R;
-import de.kai_morich.simple_bluetooth_terminal.service.SerialListener;
-import de.kai_morich.simple_bluetooth_terminal.service.SerialService;
-import de.kai_morich.simple_bluetooth_terminal.utils.TextUtil;
+import com.davsilvam.bluetooth_control.R;
+import com.davsilvam.bluetooth_control.service.SerialListener;
+import com.davsilvam.bluetooth_control.service.SerialService;
+import com.davsilvam.bluetooth_control.utils.TextUtil;
 
-public class TerminalLogFragment extends Fragment implements SerialListener {
+public class TerminalLogFragment extends Fragment implements SerialListener, ServiceConnectionListener {
     private TextView receiveText;
     private SerialService service;
     private boolean pendingNewline = false;
@@ -33,9 +34,7 @@ public class TerminalLogFragment extends Fragment implements SerialListener {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getActivity() instanceof TerminalActivity) {
-            service = ((TerminalActivity) getActivity()).getSerialService();
-        }
+        // A inicialização do serviço será feita em onServiceConnected
     }
 
     @Nullable
@@ -59,9 +58,17 @@ public class TerminalLogFragment extends Fragment implements SerialListener {
         return view;
     }
 
+    @Override
+    public void onServiceConnected(SerialService service) {
+        this.service = service;
+        if (this.service != null) {
+            this.service.attach(this);
+        }
+    }
+
     private void sendFromText(EditText sendText) {
         String text = sendText.getText().toString();
-        if (service == null) {
+        if (service == null || !service.isConnected()) {
             Toast.makeText(getActivity(), "Serviço não conectado", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -81,16 +88,11 @@ public class TerminalLogFragment extends Fragment implements SerialListener {
     }
 
     @Override
-    public void onStart() {
-        super.onStart();
-        if (service != null)
-            service.attach(this);
-    }
-
-    @Override
     public void onStop() {
-        if (service != null)
-            service.detach();
+        if (service != null) {
+            service.detach(this);
+        }
+
         super.onStop();
     }
 

@@ -1,4 +1,4 @@
-package de.kai_morich.simple_bluetooth_terminal.bluetooth;
+package com.davsilvam.bluetooth_control.bluetooth;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothDevice;
@@ -16,8 +16,8 @@ import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 
-import de.kai_morich.simple_bluetooth_terminal.service.SerialListener;
-import de.kai_morich.simple_bluetooth_terminal.utils.Constants;
+import com.davsilvam.bluetooth_control.service.SerialListener;
+import com.davsilvam.bluetooth_control.utils.Constants;
 
 public class SerialSocket implements Runnable {
     private static final UUID BLUETOOTH_SPP = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
